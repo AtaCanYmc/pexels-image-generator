@@ -3,7 +3,8 @@ from pexels_api import API
 import os
 import requests
 from pexels_api.tools import Photo
-from utils.save_utils import get_remote_size
+
+from utils.common_utils import get_remote_size
 
 load_dotenv()
 

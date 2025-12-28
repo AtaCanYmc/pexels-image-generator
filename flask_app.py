@@ -4,7 +4,8 @@ from flask import Flask, render_template_string, redirect, url_for, request
 from pexels_api.tools import Photo
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
-                                get_yes_no_input, term_to_folder_name, project_name, read_html_as_string)
+                                get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
+                                read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist)
 
 app = Flask(__name__)
 
@@ -15,8 +16,13 @@ create_folders_if_not_exist([
     f"assets/{project_name}/video_files",
 ])
 
-# yükle
+create_files_if_not_exist([
+    f"assets/{project_name}/search.txt",
+    f"assets/{project_name}/json_files/{json_map_file_name}.json"
+])
+
 search_file_path = f"assets/{project_name}/search.txt"
+json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
 search_terms = read_search_terms(search_file_path)
 
 state = {
@@ -24,7 +30,7 @@ state = {
     "photo_idx": 0,
     "photos_cache": {},  # term_idx -> list[Photo]
     "downloaded": 0,
-    "downloaded_json": {}
+    "downloaded_json": read_json_file(json_file_path),
 }
 
 TEMPLATE = read_html_as_string("templates/home_page.html")
@@ -64,19 +70,21 @@ def save_state_json():
     json_content = state["downloaded_json"]
     folder = f"assets/{project_name}/json_files"
     os.makedirs(folder, exist_ok=True)
-    json_path = os.path.join(folder, "downloaded_images.json")
-    import json
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(json_content, f, ensure_ascii=False, indent=4)
+    json_path = os.path.join(folder, f"{json_map_file_name}.json")
+    save_json_file(json_path, json_content)
 
 
 def add_image_to_json(term: str, img: Photo):
     json_state = state["downloaded_json"]
     trm = term_to_folder_name(term)
+    image_list = json_state.get(trm, [])
+
     if trm not in json_state:
         json_state[trm] = []
-    json_state[trm].append(convert_pexels_photo_to_json(img))
-    save_state_json()
+
+    if img.id not in [image['id'] for image in image_list]:
+        json_state[trm].append(convert_pexels_photo_to_json(img))
+        save_state_json()
 
 
 def advance_after_action():

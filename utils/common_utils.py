@@ -1,9 +1,44 @@
 import os
+
+import requests
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
 project_name = os.getenv('PROJECT_NAME', 'unknown')
+json_map_file_name = os.getenv('IMAGE_MAP_JSON_NAME', 'downloaded_images')
+
+
+def get_remote_size(url: str) -> dict:
+    try:
+        head = requests.head(url, timeout=10)
+        cl = head.headers.get('Content-Length')
+        if cl:
+            size_bytes = int(cl)
+            return {
+                'bytes': size_bytes,
+                'kb_decimal': size_bytes / 1000,
+                'kb_binary': size_bytes / 1024,
+                'source': 'Content-Length header'
+            }
+    except Exception:
+        pass
+
+    # Fallback: stream ile indirirken byte say (belleğe almadan)
+    size = 0
+    with requests.get(url, stream=True, timeout=30) as r:
+        r.raise_for_status()
+        for chunk in r.iter_content(8192):
+            if chunk:
+                size += len(chunk)
+
+    return {
+        'bytes': size,
+        'kb_decimal': size / 1000 if size > 0 else 0,
+        'kb_binary': size / 1024 if size > 0 else 0,
+        'source': 'streamed download'
+    }
 
 
 def term_to_folder_name(term: str) -> str:
@@ -14,6 +49,13 @@ def create_folders_if_not_exist(folder_names: list[str]):
     for folder_name in folder_names:
         if not os.path.exists(folder_name):
             os.makedirs(folder_name)
+
+
+def create_files_if_not_exist(file_paths: list[str]):
+    for file_path in file_paths:
+        if not os.path.exists(file_path):
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write('')
 
 
 def get_yes_no_input(prompt: str) -> bool:
@@ -36,3 +78,13 @@ def read_search_terms(file_path: str) -> list[str]:
 def read_html_as_string(file_path: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
+
+
+def read_json_file(file_path: str) -> dict:
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+
+def save_json_file(file_path: str, data: dict):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
