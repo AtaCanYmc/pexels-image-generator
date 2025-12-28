@@ -24,7 +24,7 @@ create_files_if_not_exist([
 search_file_path = f"assets/{project_name}/search.txt"
 json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
 json_map = read_json_file(json_file_path)
-removed_keys = [key for key in json_map.keys()] if json_map else []
+removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) > 0] if json_map else []
 search_terms = read_search_terms(search_file_path, removed_keys)
 
 state = {
