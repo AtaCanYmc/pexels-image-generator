@@ -69,4 +69,5 @@ def convert_pexels_photo_to_json(img: Photo) -> dict:
         'landscape': img.landscape,
         'tiny': img.tiny,
         'extension': img.extension,
+        'apiType': 'pexels'
     }

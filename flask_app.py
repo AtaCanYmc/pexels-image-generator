@@ -1,11 +1,13 @@
 # python
 import os
+from typing import Any
+
 from flask import Flask, render_template_string, redirect, url_for, request
-from pexels_api.tools import Photo
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist)
+from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json
 
 app = Flask(__name__)
 
@@ -33,18 +35,30 @@ state = {
     "photos_cache": {},  # term_idx -> list[Photo]
     "downloaded": 0,
     "downloaded_json": json_map,
+    "current_api": 'pexels'
 }
 
 TEMPLATE = read_html_as_string("templates/home_page.html")
 
 
-def get_photos_for_term_idx(idx):
-    if idx in state["photos_cache"]:
-        return state["photos_cache"][idx]
+def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
     if idx < 0 or idx >= len(search_terms):
         return []
+
+    if use_cache and idx in state["photos_cache"]:
+        return state["photos_cache"][idx]
+    else:
+        state["photos_cache"][idx] = None
+
+    api_type = state["current_api"]
     term = search_terms[idx]
-    photos = get_image_from_pexels(term, page_idx=1, results_per_page=15) or []
+    photos = []
+
+    if api_type == 'pexels':
+        photos = get_image_from_pexels(term, page_idx=1, results_per_page=30)
+    elif api_type == 'pixabay':
+        photos = get_image_from_pixabay(term, page_idx=1, results_per_page=30)
+
     state["photos_cache"][idx] = photos
     return photos
 
@@ -52,15 +66,19 @@ def get_photos_for_term_idx(idx):
 def current_photo_info():
     ti = state["term_idx"]
     pi = state["photo_idx"]
+    cur_api = state["current_api"]
     if ti >= len(search_terms):
         return None, None, None
-    photos = get_photos_for_term_idx(ti)
+    photos: Any = get_photos_for_term_idx(ti)
     if not photos or pi >= len(photos):
         return search_terms[ti], None, None
     photo = photos[pi]
-    # try common attributes
-    url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
-    # fallback if object has src dict
+    url = None
+    if cur_api == 'pixabay':
+        url = photo.largeImageURL
+        return search_terms[ti], photo, url
+    elif cur_api == 'pexels':
+        url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
     if not url:
         src = getattr(photo, "src", None)
         if isinstance(src, dict):
@@ -76,7 +94,8 @@ def save_state_json():
     save_json_file(json_path, json_content)
 
 
-def add_image_to_json(term: str, img: Photo):
+def add_image_to_json(term: str, img: Any):
+    c_api = state["current_api"]
     json_state = state["downloaded_json"]
     trm = term_to_folder_name(term)
     image_list = json_state.get(trm, [])
@@ -84,13 +103,15 @@ def add_image_to_json(term: str, img: Photo):
     if trm not in json_state:
         json_state[trm] = []
 
-    if img.id not in [image['id'] for image in image_list]:
-        json_state[trm].append(convert_pexels_photo_to_json(img))
+    if f"{img.id}-{c_api}" not in [f"{image['id']}-{c_api}" for image in image_list]:
+        if c_api == 'pexels':
+            json_state[trm].append(convert_pexels_photo_to_json(img))
+        elif c_api == 'pixabay':
+            json_state[trm].append(convert_pixabay_image_to_json(img))
         save_state_json()
 
 
 def advance_after_action():
-    # ilerle: aynı terimde bir sonraki foto, biterse bir sonraki terime geç
     state["photo_idx"] += 1
     photos = get_photos_for_term_idx(state["term_idx"])
     if state["photo_idx"] >= len(photos):
@@ -98,31 +119,24 @@ def advance_after_action():
         state["photo_idx"] = 0
 
 
-@app.route("/")
-def index():
-    if state["term_idx"] >= len(search_terms):
-        return render_template_string(TEMPLATE, finished=True, downloaded=state["downloaded"])
+def decision_execution(action: str):
     term, photo, url = current_photo_info()
-    finished = False
-    if term is None:
-        finished = True
-    return render_template_string(
-        TEMPLATE,
-        finished=finished,
-        term=term,
-        term_idx=state["term_idx"],
-        total_terms=len(search_terms),
-        photo_url=url,
-        downloaded=state["downloaded"]
-    )
-
-
-@app.route("/decision", methods=["POST"])
-def decision():
-    action = request.form.get("action")
-    term, photo, url = current_photo_info()
-
+    print(f"-> action: {action}")
     if not term:
+        return redirect(url_for("index"))
+
+    if action == "use-pexels-api":
+        state["photos_cache"] = {}
+        state["current_api"] = 'pexels'
+        state["photo_idx"] = 0
+        get_photos_for_term_idx(state["term_idx"], use_cache=False)
+        return redirect(url_for("index"))
+
+    if action == "use-pixabay-api":
+        state["photos_cache"] = {}
+        state["current_api"] = 'pixabay'
+        state["photo_idx"] = 0
+        get_photos_for_term_idx(state["term_idx"], use_cache=False)
         return redirect(url_for("index"))
 
     if action == "next-term":
@@ -151,9 +165,40 @@ def decision():
         download_pexels_images([photo], folder)
         add_image_to_json(term, photo)
         state["downloaded"] += 1
+        advance_after_action()
+        return redirect(url_for("index"))
 
-    advance_after_action()
-    return redirect(url_for("index"))
+    if action == "no":
+        advance_after_action()
+        return redirect(url_for("index"))
+
+    return None
+
+
+@app.route("/")
+def index():
+    if state["term_idx"] >= len(search_terms):
+        return render_template_string(TEMPLATE, finished=True, downloaded=state["downloaded"])
+    term, photo, url = current_photo_info()
+    finished = False
+    if term is None:
+        finished = True
+    return render_template_string(
+        TEMPLATE,
+        finished=finished,
+        term=term,
+        term_idx=state["term_idx"],
+        total_terms=len(search_terms),
+        photo_url=url,
+        downloaded=state["downloaded"],
+        current_api=state["current_api"]
+    )
+
+
+@app.route("/decision", methods=["POST"])
+def decision():
+    action = request.form.get("action")
+    return decision_execution(action)
 
 
 @app.route("/next")
