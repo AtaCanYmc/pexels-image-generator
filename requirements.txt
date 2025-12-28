@@ -1,3 +1,4 @@
+beautifulsoup4
 pexels-api
 requests~=2.32.5
 python-dotenv~=1.2.1

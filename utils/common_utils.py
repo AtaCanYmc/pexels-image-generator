@@ -1,5 +1,6 @@
 import os
-
+import random
+import string
 import requests
 from dotenv import load_dotenv
 import json
@@ -8,6 +9,10 @@ load_dotenv()
 
 project_name = os.getenv('PROJECT_NAME', 'unknown')
 json_map_file_name = os.getenv('IMAGE_MAP_JSON_NAME', 'downloaded_images')
+
+
+def generate_random_uuid() -> str:
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
 
 
 def get_remote_size(url: str) -> dict:
