@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Pexels Reviewer</title></head>
+<body>
+{% if finished %}
+<h2>All terms Completed.</h2>
+<p>Total Downloaded Files: {{ downloaded }}</p>
+{% else %}
+<h3>Term ({{ term_idx+1 }}/{{ total_terms }}): {{ term }}</h3>
+{% if photo_url %}
+<img src="{{ photo_url }}" style="max-width:90vw;max-height:70vh;border:1px solid #ccc;" alt="photo">
+<form method="post" action="{{ url_for('decision') }}">
+    <input type="hidden" name="action" value="yes">
+    <button type="submit" style="height: 35px; border-radius: 10px;">Yes (Save)</button>
+</form>
+<br>
+<form method="post" action="{{ url_for('decision') }}">
+    <input type="hidden" name="action" value="no">
+    <button type="submit" style="height: 35px; border-radius: 10px;">No (Skip)</button>
+</form>
+<br>
+<form method="post" action="{{ url_for('decision') }}">
+    <input type="hidden" name="action" value="next">
+    <button type="submit" style="height: 35px; border-radius: 10px;">Next Term</button>
+</form>
+{% else %}
+<p>No image for this term. Skipping...</p>
+<a href="{{ url_for('next_step') }}">Continue</a>
+{% endif %}
+<p>Downloaded: {{ downloaded }}</p>
+{% endif %}
+</body>
+</html>
