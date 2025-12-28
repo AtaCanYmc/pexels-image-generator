@@ -8,7 +8,7 @@
 <h2>All terms Completed.</h2>
 <p>Total Downloaded Files: {{ downloaded }}</p>
 {% else %}
-<h3>Term ({{ term_idx+1 }}/{{ total_terms }}): {{ term }} ({{ current_api }})</h3>
+<h3>Term ({{ term_idx+1 }}/{{ total_terms }}): {{ term }} ({{ current_api }}) [downloaded: ({{ term_photo_counter }})]</h3>
 {% if photo_url %}
 <img src="{{ photo_url }}" style="max-width:90vw;max-height:70vh;border:1px solid #ccc;" alt="photo">
 <div class="yes-no" style="display:flex; gap:10px; margin-top:10px; flex-direction: row;">

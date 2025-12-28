@@ -7,7 +7,7 @@ from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexel
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist)
-from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json
+from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images
 
 app = Flask(__name__)
 
@@ -67,23 +67,25 @@ def current_photo_info():
     ti = state["term_idx"]
     pi = state["photo_idx"]
     cur_api = state["current_api"]
+    cur_term = search_terms[ti]
+    cur_term_saved_img_count = len(state["downloaded_json"].get(term_to_folder_name(cur_term), []))
     if ti >= len(search_terms):
         return None, None, None
     photos: Any = get_photos_for_term_idx(ti)
     if not photos or pi >= len(photos):
-        return search_terms[ti], None, None
+        return cur_term, None, None, None
     photo = photos[pi]
     url = None
     if cur_api == 'pixabay':
         url = photo.largeImageURL
-        return search_terms[ti], photo, url
+        return cur_term, photo, url, cur_term_saved_img_count
     elif cur_api == 'pexels':
         url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
     if not url:
         src = getattr(photo, "src", None)
         if isinstance(src, dict):
             url = src.get("large2x") or src.get("original") or next(iter(src.values()), None)
-    return search_terms[ti], photo, url
+    return cur_term, photo, url, cur_term_saved_img_count
 
 
 def save_state_json():
@@ -119,8 +121,20 @@ def advance_after_action():
         state["photo_idx"] = 0
 
 
+def download_image(photo: Any, term: str):
+    c_api = state["current_api"]
+    folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
+    os.makedirs(folder, exist_ok=True)
+    if c_api == 'pixabay':
+        download_pixabay_images([photo], folder)
+    elif c_api == 'pexels':
+        download_pexels_images([photo], folder)
+    add_image_to_json(term, photo)
+    state["downloaded"] += 1
+
+
 def decision_execution(action: str):
-    term, photo, url = current_photo_info()
+    term, photo, url, cur_term_saved_img_count = current_photo_info()
     print(f"-> action: {action}")
     if not term:
         return redirect(url_for("index"))
@@ -160,11 +174,7 @@ def decision_execution(action: str):
         return redirect(url_for("index"))
 
     if action == "yes" and photo:
-        folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
-        os.makedirs(folder, exist_ok=True)
-        download_pexels_images([photo], folder)
-        add_image_to_json(term, photo)
-        state["downloaded"] += 1
+        download_image(photo, term)
         advance_after_action()
         return redirect(url_for("index"))
 
@@ -179,7 +189,7 @@ def decision_execution(action: str):
 def index():
     if state["term_idx"] >= len(search_terms):
         return render_template_string(TEMPLATE, finished=True, downloaded=state["downloaded"])
-    term, photo, url = current_photo_info()
+    term, photo, url, cur_term_saved_img_count = current_photo_info()
     finished = False
     if term is None:
         finished = True
@@ -191,7 +201,8 @@ def index():
         total_terms=len(search_terms),
         photo_url=url,
         downloaded=state["downloaded"],
-        current_api=state["current_api"]
+        current_api=state["current_api"],
+        term_photo_counter=cur_term_saved_img_count
     )
 
 

@@ -3,6 +3,8 @@ import requests
 from dotenv import load_dotenv
 from dataclasses import dataclass
 
+from utils.common_utils import get_remote_size
+
 load_dotenv()
 
 pixabay_api_key = os.getenv('PIXABAY_API_KEY')
@@ -42,8 +44,10 @@ def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[Pixaba
         'per_page': results_per_page,
         'image_type': 'photo',
     }
-    response = requests.get(pixabay_api_url, params=params)
+    response = requests.get(pixabay_api_url, params=params, timeout=30)
     data = response.json()
+    if 'error' in data:
+        raise Exception(f"Pixabay API error: {data['error']}")
     image_list = []
     for item in data.get('hits', []):
         img = PixabayImage(
@@ -71,6 +75,20 @@ def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[Pixaba
         )
         image_list.append(img)
     return image_list
+
+
+def download_pixabay_images(image_list: list[PixabayImage], folder_name: str):
+    for img in image_list:
+        url = img.largeImageURL
+        image_info = get_remote_size(url)
+        content_kb = image_info.get('kb_decimal', 0)
+        if content_kb <= int(os.getenv('MAX_IMAGE_KB', '256')):
+            image_data = requests.get(url, timeout=30)
+            extension = url.split('.')[-1]
+            image_path = os.path.join(folder_name, f"{img.id}.{extension}")
+            with open(image_path, 'wb') as file:
+                file.write(image_data.content)
+            print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
 
 
 def convert_pixabay_image_to_json(img: PixabayImage) -> dict:
