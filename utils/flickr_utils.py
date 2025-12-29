@@ -79,13 +79,15 @@ def download_flickr_images(image_list: list[FlickerImage], folder_name: str):
         url = img.hi_res_url
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
-        if content_kb <= int(os.getenv('MAX_IMAGE_KB', '256')):
+        if content_kb <= int(os.getenv('MAX_KB_IMAGE_SIZE', '512')):
             image_data = requests.get(url, timeout=30)
             extension = url.split('.')[-1]
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:
                 file.write(image_data.content)
             print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
+        else:
+            print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
 
 
 def convert_image_to_base64(url: str) -> str:

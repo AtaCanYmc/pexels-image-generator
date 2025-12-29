@@ -274,15 +274,20 @@ def decision():
 @app.route("/download-api-images", methods=["POST"])
 def download_api_images():
     if state["current_api"] == 'pexels':
+        create_folders_if_not_exist([f"assets/{project_name}/image_files/pexels"])
         pass
     elif state["current_api"] == 'pixabay':
+        create_folders_if_not_exist([f"assets/{project_name}/image_files/pixabay"])
         pass
     elif state["current_api"] == 'unsplash':
+        create_folders_if_not_exist([f"assets/{project_name}/image_files/unsplash"])
         pass
     elif state["current_api"] == 'flickr':
-        download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files")
+        create_folders_if_not_exist([f"assets/{project_name}/image_files/flickr"])
+        download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files/flickr")
 
     return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     is_continue = get_yes_no_input(

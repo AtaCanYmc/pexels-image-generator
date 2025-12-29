@@ -13,7 +13,7 @@ if not pexels_api_key:
     raise EnvironmentError(
         "Environment variable `PEXELS_API_KEY` is not set. Set it in the environment or in a `.env` file.")
 pexels_api = API(pexels_api_key)
-max_image_kb = int(os.getenv('MAX_IMAGE_KB', '256'))
+max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 
 
 def get_image_from_pexels(term, page_idx=1, results_per_page=15) -> list[Photo]:
