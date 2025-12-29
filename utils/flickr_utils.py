@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import base64
 from io import BytesIO
+import json
 
 from utils.common_utils import get_remote_size, term_to_folder_name, read_json_file
 
@@ -93,3 +94,45 @@ def convert_image_to_base64(url: str) -> str:
     image_data = BytesIO(response.content)
     encoded_string = base64.b64encode(image_data.getvalue()).decode('utf-8')
     return encoded_string
+
+
+def fix_asset_paths_of_json(json_file: str):
+    image_list = read_json_file(json_file)
+    for term, images in image_list.items():
+        for img_data in images:
+            if img_data.get('apiType') != 'flickr':
+                continue
+
+            if img_data.get('assetPath', None) is None:
+                img_data['assetPath'] = f"{term_to_folder_name(term)}/{img_data['id']}.jpg"
+                print(f"Fixed assetPath for {img_data['id']} to {img_data['assetPath']}")
+
+    with open(json_file, 'w') as file:
+        json.dump(image_list, file, indent=4)
+
+
+def download_flicker_images_from_json(json_file: str, folder_name: str):
+    image_list = read_json_file(json_file)
+    for term, images in image_list.items():
+        term_folder = os.path.join(folder_name, term_to_folder_name(term))
+        img_types = set(img.get('apiType') for img in images)
+
+        if not os.path.exists(term_folder) and 'flickr' in img_types:
+            os.makedirs(term_folder)
+
+        for img_data in images:
+            if img_data.get('apiType') != 'flickr':
+                continue
+
+            img = FlickerImage(
+                id=img_data['id'],
+                url=img_data['url'],
+                hi_res_url=img_data['highResUrl'],
+                asset_path=img_data.get('assetPath', ''),
+                base64_data=img_data.get('base64Data', '')
+            )
+
+            if img_data.get('assetPath', None) is None:
+                print(f"Error at {img_data['id']} path is None")
+
+            download_flickr_images([img], term_folder)

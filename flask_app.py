@@ -4,12 +4,13 @@ from typing import Any
 
 from flask import Flask, render_template_string, redirect, url_for, request
 
-from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images
+from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images, \
+    download_flicker_images_from_json
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
-                                min_image_for_term)
+                                min_image_for_term, is_download)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
     remove_id_from_img_url
@@ -147,7 +148,10 @@ def advance_after_action():
         state["photo_idx"] = 0
 
 
-def download_image(photo: Any, term: str):
+def download_image(photo: Any, term: str, force_download=False):
+    if not is_download and not force_download:
+        return
+
     c_api = state["current_api"]
     folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
     os.makedirs(folder, exist_ok=True)
@@ -266,6 +270,19 @@ def decision():
     action = request.form.get("action")
     return decision_execution(action)
 
+
+@app.route("/download-api-images", methods=["POST"])
+def download_api_images():
+    if state["current_api"] == 'pexels':
+        pass
+    elif state["current_api"] == 'pixabay':
+        pass
+    elif state["current_api"] == 'unsplash':
+        pass
+    elif state["current_api"] == 'flickr':
+        download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files")
+
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     is_continue = get_yes_no_input(
