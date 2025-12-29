@@ -3,7 +3,6 @@ from pexels_api import API
 import os
 import requests
 from pexels_api.tools import Photo
-import json
 from utils.common_utils import get_remote_size, read_json_file, create_folders_if_not_exist
 
 load_dotenv()
