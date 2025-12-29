@@ -8,7 +8,8 @@
 <h2>All terms Completed.</h2>
 <p>Total Downloaded Files: {{ downloaded }}</p>
 {% else %}
-<h3>Term ({{ term_idx+1 }}/{{ total_terms }}): {{ term }} ({{ current_api }}) [downloaded: ({{ term_photo_counter }})]</h3>
+<h3>Term ({{ term_idx+1 }}/{{ total_terms }}): {{ term }} ({{ current_api }}) [downloaded: ({{ term_photo_counter
+    }})]</h3>
 {% if photo_url %}
 <img src="{{ photo_url }}" style="max-width:90vw;max-height:70vh;border:1px solid #ccc;" alt="photo">
 <div class="yes-no" style="display:flex; gap:10px; margin-top:10px; flex-direction: row;">
@@ -44,9 +45,13 @@
         <input type="hidden" name="action" value="use-pixabay-api">
         <button type="submit" style="height: 35px; border-radius: 10px;">Use Pixabay API</button>
     </form>
-        <form method="post" action="{{ url_for('decision') }}">
+    <form method="post" action="{{ url_for('decision') }}">
         <input type="hidden" name="action" value="use-unsplash-api">
         <button type="submit" style="height: 35px; border-radius: 10px;">Use Unsplash API</button>
+    </form>
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="use-flickr-api">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Use Flickr (!)</button>
     </form>
 </div>
 {% else %}
@@ -70,9 +75,13 @@
         <input type="hidden" name="action" value="use-pixabay-api">
         <button type="submit" style="height: 35px; border-radius: 10px;">Use Pixabay API</button>
     </form>
-        <form method="post" action="{{ url_for('decision') }}">
+    <form method="post" action="{{ url_for('decision') }}">
         <input type="hidden" name="action" value="use-unsplash-api">
         <button type="submit" style="height: 35px; border-radius: 10px;">Use Unsplash API</button>
+    </form>
+        <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="use-flickr-api">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Use Flickr (!)</button>
     </form>
 </div>
 {% endif %}

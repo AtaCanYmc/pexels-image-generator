@@ -3,6 +3,8 @@ import os
 from typing import Any
 
 from flask import Flask, render_template_string, redirect, url_for, request
+
+from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
@@ -64,6 +66,8 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
         photos = get_image_from_pixabay(term, page_idx=1, results_per_page=30)
     elif api_type == 'unsplash':
         photos = get_image_from_unsplash(term, limit=30)
+    elif api_type == 'flickr':
+        photos = get_image_from_flickr(term, limit=30)
 
     state["photos_cache"][idx] = photos
     return photos
@@ -95,6 +99,8 @@ def current_photo_info():
     elif cur_api == 'unsplash':
         url = getattr(photo.urls, "full", None) or getattr(photo.urls, "regular", None)
         url = remove_id_from_img_url(url)
+    elif cur_api == 'flickr':
+        url = getattr(photo, 'hi_res_url', None) or getattr(photo, 'url', None)
 
     if not url:
         src = getattr(photo, "src", None)
@@ -127,6 +133,9 @@ def add_image_to_json(term: str, img: Any):
             json_state[trm].append(convert_pixabay_image_to_json(img))
         elif c_api == 'unsplash':
             json_state[trm].append(convert_unsplash_image_to_json(img))
+        elif c_api == 'flickr':
+            json_state[trm].append(convert_flickr_image_to_json(img))
+
         save_state_json()
 
 
@@ -149,6 +158,8 @@ def download_image(photo: Any, term: str):
         download_pexels_images([photo], folder)
     elif c_api == 'unsplash':
         download_unsplash_images([photo], folder)
+    elif c_api == 'flickr':
+        download_flickr_images([photo], folder)
 
     add_image_to_json(term, photo)
     state["downloaded"] += 1
@@ -177,6 +188,13 @@ def decision_execution(action: str):
     if action == "use-unsplash-api":
         state["photos_cache"] = {}
         state["current_api"] = 'unsplash'
+        state["photo_idx"] = 0
+        get_photos_for_term_idx(state["term_idx"], use_cache=False)
+        return redirect(url_for("index"))
+
+    if action == "use-flickr-api":
+        state["photos_cache"] = {}
+        state["current_api"] = 'flickr'
         state["photo_idx"] = 0
         get_photos_for_term_idx(state["term_idx"], use_cache=False)
         return redirect(url_for("index"))
