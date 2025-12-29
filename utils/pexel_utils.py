@@ -84,6 +84,11 @@ def download_pexels_images_from_json(json_file: str, folder_name: str):
             content_kb = image_info.get('kb_decimal', 0)
 
             if content_kb > max_image_kb:
+                url = img_data['large2x']
+                image_info = get_remote_size(url)
+                content_kb = image_info.get('kb_decimal', 0)
+
+            if content_kb > max_image_kb:
                 url = img_data['large']
                 image_info = get_remote_size(url)
                 content_kb = image_info.get('kb_decimal', 0)
