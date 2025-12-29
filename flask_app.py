@@ -8,6 +8,8 @@ from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images
+from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
+    remove_id_from_img_url
 
 app = Flask(__name__)
 
@@ -26,6 +28,7 @@ create_files_if_not_exist([
 search_file_path = f"assets/{project_name}/search.txt"
 json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
 json_map = read_json_file(json_file_path)
+
 removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) > 2] if json_map else []
 search_terms = read_search_terms(search_file_path, removed_keys)
 
@@ -58,6 +61,8 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
         photos = get_image_from_pexels(term, page_idx=1, results_per_page=30)
     elif api_type == 'pixabay':
         photos = get_image_from_pixabay(term, page_idx=1, results_per_page=30)
+    elif api_type == 'unsplash':
+        photos = get_image_from_unsplash(term, limit=30)
 
     state["photos_cache"][idx] = photos
     return photos
@@ -69,18 +74,27 @@ def current_photo_info():
     cur_api = state["current_api"]
     cur_term = search_terms[ti]
     cur_term_saved_img_count = len(state["downloaded_json"].get(term_to_folder_name(cur_term), []))
+
     if ti >= len(search_terms):
         return None, None, None
+
     photos: Any = get_photos_for_term_idx(ti)
+
     if not photos or pi >= len(photos):
         return cur_term, None, None, None
+
     photo = photos[pi]
     url = None
+
     if cur_api == 'pixabay':
         url = photo.largeImageURL
         return cur_term, photo, url, cur_term_saved_img_count
     elif cur_api == 'pexels':
         url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
+    elif cur_api == 'unsplash':
+        url = getattr(photo.urls, "full", None) or getattr(photo.urls, "regular", None)
+        url = remove_id_from_img_url(url)
+
     if not url:
         src = getattr(photo, "src", None)
         if isinstance(src, dict):
@@ -110,6 +124,8 @@ def add_image_to_json(term: str, img: Any):
             json_state[trm].append(convert_pexels_photo_to_json(img))
         elif c_api == 'pixabay':
             json_state[trm].append(convert_pixabay_image_to_json(img))
+        elif c_api == 'unsplash':
+            json_state[trm].append(convert_unsplash_image_to_json(img))
         save_state_json()
 
 
@@ -125,10 +141,14 @@ def download_image(photo: Any, term: str):
     c_api = state["current_api"]
     folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
     os.makedirs(folder, exist_ok=True)
+
     if c_api == 'pixabay':
         download_pixabay_images([photo], folder)
     elif c_api == 'pexels':
         download_pexels_images([photo], folder)
+    elif c_api == 'unsplash':
+        download_unsplash_images([photo], folder)
+
     add_image_to_json(term, photo)
     state["downloaded"] += 1
 
@@ -149,6 +169,13 @@ def decision_execution(action: str):
     if action == "use-pixabay-api":
         state["photos_cache"] = {}
         state["current_api"] = 'pixabay'
+        state["photo_idx"] = 0
+        get_photos_for_term_idx(state["term_idx"], use_cache=False)
+        return redirect(url_for("index"))
+
+    if action == "use-unsplash-api":
+        state["photos_cache"] = {}
+        state["current_api"] = 'unsplash'
         state["photo_idx"] = 0
         get_photos_for_term_idx(state["term_idx"], use_cache=False)
         return redirect(url_for("index"))
@@ -204,6 +231,15 @@ def index():
         current_api=state["current_api"],
         term_photo_counter=cur_term_saved_img_count
     )
+
+
+@app.route("/<int:idx>")
+def index_by_idx(idx):
+    idx = int(idx) - 1
+    if 0 <= idx < len(search_terms):
+        state["term_idx"] = idx
+        state["photo_idx"] = 0
+    return redirect(url_for("index"))
 
 
 @app.route("/decision", methods=["POST"])

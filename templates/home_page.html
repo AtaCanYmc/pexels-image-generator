@@ -44,10 +44,28 @@
         <input type="hidden" name="action" value="use-pixabay-api">
         <button type="submit" style="height: 35px; border-radius: 10px;">Use Pixabay API</button>
     </form>
+        <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="use-unsplash-api">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Use Unsplash API</button>
+    </form>
 </div>
 {% else %}
-<p>No image for this term. Skipping...</p>
+<p>No image for this term in {{ current_api }}. Skipping...</p>
 <a href="{{ url_for('next_step') }}">Continue</a>
+<div class="api" style="display:flex; gap:10px; margin-top:10px; flex-direction: row;">
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="use-pexels-api">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Use Pexels API</button>
+    </form>
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="use-pixabay-api">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Use Pixabay API</button>
+    </form>
+        <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="use-unsplash-api">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Use Unsplash API</button>
+    </form>
+</div>
 {% endif %}
 <p>Downloaded: {{ downloaded }}</p>
 {% endif %}
