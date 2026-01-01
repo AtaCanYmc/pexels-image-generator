@@ -3,20 +3,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Media Reviewer Pro</title>
+    <title>Home - Media Reviewer Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .image-container { max-height: 65vh; }
-        .btn-transition { transition: all 0.2s ease; }
+        .stat-card:hover { transform: translateY(-4px); transition: all 0.3s ease; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
 
 <nav class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
-
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center gap-8">
             <h1 class="text-xl font-bold text-indigo-600 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -25,216 +23,120 @@
                     <circle cx="9" cy="9" r="2"/>
                     <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                 </svg>
-                Pexels Reviewer
+                Media Reviewer
             </h1>
-
             <div class="hidden md:flex items-center bg-gray-100 p-1 rounded-xl">
                 {% for page in pages %}
                 <a href="{{ page.route }}"
-                   class="px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                       {% if request.path == page.route %}
-                            bg-white text-indigo-600 shadow-sm
-                       {% else %}
-                            text-gray-500 hover:text-gray-900
-                       {% endif %}">
+                   class="px-4 py-2 rounded-lg text-sm font-semibold transition-all {% if request.path == page.route %} bg-white text-indigo-600 shadow-sm {% else %} text-gray-500 hover:text-gray-900 {% endif %}">
                     {{ page.name | capitalize }}
                 </a>
                 {% endfor %}
             </div>
         </div>
+    </div>
+</nav>
 
-        <div class="flex items-center gap-6">
-            <div class="flex flex-col items-end border-l pl-6 border-gray-100">
-                <span class="text-gray-400 uppercase text-[10px] tracking-widest font-bold">Session Progress</span>
-                <span class="text-indigo-600 font-bold flex items-center gap-2">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        {{ downloaded }} Saved
+<main class="max-w-7xl mx-auto p-6 md:p-12">
+
+    <div class="mb-12">
+        <h2 class="text-sm font-bold text-indigo-500 uppercase tracking-[0.2em] mb-2 text-center md:text-left">Project
+            Dashboard</h2>
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <h3 class="text-4xl font-extrabold text-gray-900 tracking-tight text-center md:text-left">
+                Welcome to <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">{{ project_name }}</span>
+            </h3>
+            <div class="flex justify-center gap-3">
+                    <span class="px-4 py-2 bg-green-50 text-green-700 border border-green-100 rounded-full text-xs font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span> System Ready
                     </span>
             </div>
         </div>
     </div>
 
-    <div class="flex md:hidden mt-4 pt-4 border-t border-gray-100 justify-around">
-        {% for page in pages %}
-        <a href="{{ page.route }}"
-           class="text-xs font-bold uppercase tracking-tighter {% if request.path == page.route %} text-indigo-600 {% else %} text-gray-400 {% endif %}">
-            {{ page.name }}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm stat-card">
+            <p class="text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Search Terms</p>
+            <h4 class="text-4xl font-black text-gray-800">{{ total_terms }}</h4>
+            <div class="mt-4 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-full" style="width: 70%"></div>
+            </div>
+        </div>
+        <div class="bg-indigo-600 p-8 rounded-3xl border border-indigo-700 shadow-lg shadow-indigo-100 stat-card">
+            <p class="text-indigo-200 text-sm font-medium uppercase tracking-wider mb-1">Files Downloaded</p>
+            <h4 class="text-4xl font-black text-white">{{ downloaded }}</h4>
+            <p class="text-indigo-300 text-xs mt-4">Across all configured APIs</p>
+        </div>
+        <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm stat-card text-center flex flex-col items-center justify-center">
+            <div class="flex -space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center font-bold text-[10px] text-blue-600">
+                    PX
+                </div>
+                <div class="w-10 h-10 rounded-full border-2 border-white bg-green-100 flex items-center justify-center font-bold text-[10px] text-green-600">
+                    PB
+                </div>
+                <div class="w-10 h-10 rounded-full border-2 border-white bg-orange-100 flex items-center justify-center font-bold text-[10px] text-orange-600">
+                    UN
+                </div>
+                <div class="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center font-bold text-[10px] text-gray-600">
+                    FK
+                </div>
+            </div>
+            <p class="text-gray-500 text-xs font-bold uppercase">4 Active APIs</p>
+        </div>
+    </div>
+
+    <h4 class="text-xl font-bold text-gray-800 mb-6">Quick Actions</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <a href="/setup"
+           class="group bg-white p-8 rounded-3xl border border-gray-200 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-50/50 transition-all">
+            <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"/>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+            </div>
+            <h5 class="text-lg font-bold mb-2">1. Setup Terms</h5>
+            <p class="text-gray-500 text-sm leading-relaxed">Arama yapmak istediğiniz anahtar kelimeleri satır satır
+                ekleyin veya düzenleyin.</p>
         </a>
-        {% endfor %}
+
+        <a href="/review"
+           class="group bg-white p-8 rounded-3xl border border-gray-200 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-50/50 transition-all">
+            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/>
+                    <polyline points="16 5 21 5 21 10"/>
+                    <line x1="9" y1="15" x2="21" y2="3"/>
+                </svg>
+            </div>
+            <h5 class="text-lg font-bold mb-2">2. Start Review</h5>
+            <p class="text-gray-500 text-sm leading-relaxed">Görselleri kürate etmeye başlayın. En iyileri seçin ve
+                projeniz için kaydedin.</p>
+        </a>
+
+        <a href="/settings"
+           class="group bg-white p-8 rounded-3xl border border-gray-200 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-50/50 transition-all">
+            <div class="w-14 h-14 bg-gray-50 text-gray-600 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 group-hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            </div>
+            <h5 class="text-lg font-bold mb-2">System Config</h5>
+            <p class="text-gray-500 text-sm leading-relaxed">.env değişkenlerini ve API limitlerini gözden geçirin,
+                sistemi optimize edin.</p>
+        </a>
+
     </div>
-</nav>
 
-<main class="max-w-7xl mx-auto p-6">
-    {% if finished %}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-        <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-        </div>
-        <h2 class="text-3xl font-bold mb-2">All Terms Completed!</h2>
-        <p class="text-gray-500 mb-8">Great job! You have reviewed all search terms in the list.</p>
-        <div class="bg-gray-50 inline-block px-8 py-4 rounded-xl border border-gray-100">
-            <span class="block text-sm text-gray-400">Total Downloaded</span>
-            <span class="text-2xl font-bold text-gray-800">{{ downloaded }}</span>
-        </div>
+    <div class="mt-16 text-center border-t border-gray-100 pt-8">
+        <p class="text-sm text-gray-400">Media Reviewer Pro v1.0.0 — Designed for efficient image curation.</p>
     </div>
-
-    {% else %}
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        <div class="lg:col-span-8 space-y-4">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
-                <div class="w-full bg-gray-100 h-1.5">
-                    <div class="bg-indigo-500 h-1.5" style="width: {{ (term_idx + 1) / total_terms * 100 }}%"></div>
-                </div>
-
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                    <div>
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Current Term ({{ term_idx+1 }}/{{ total_terms }})</span>
-                        <h2 class="text-xl font-bold text-gray-800">{{ term }}</h2>
-                    </div>
-                    <span class="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-semibold text-gray-600 shadow-sm">
-                            API: <span class="text-indigo-600 italic">{{ current_api }}</span>
-                        </span>
-                </div>
-
-                <div class="image-container bg-black flex items-center justify-center overflow-hidden min-h-[500px]">
-                    {% if photo_url %}
-                    <img src="{{ photo_url }}" class="max-w-full max-h-full object-contain shadow-2xl"
-                         alt="Review Photo">
-                    {% else %}
-                    <div class="text-center p-20 text-white">
-                        <svg class="mx-auto mb-4 opacity-20" xmlns="http://www.w3.org/2000/svg" width="64" height="64"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
-                             stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-                        </svg>
-                        <p class="text-gray-400">No image available for this term in {{ current_api }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-
-                {% if photo_url %}
-                <div class="p-6 bg-white flex justify-center gap-4 border-t border-gray-100">
-                    <form method="post" action="{{ url_for('decision') }}">
-                        <input type="hidden" name="action" value="previous">
-                        <button type="submit"
-                                class="btn-transition flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round">
-                                <path d="m12 19-7-7 7-7"/>
-                                <path d="M19 12H5"/>
-                            </svg>
-                            Back
-                        </button>
-                    </form>
-                    <form method="post" action="{{ url_for('decision') }}">
-                        <input type="hidden" name="action" value="no">
-                        <button type="submit"
-                                class="btn-transition flex items-center gap-2 px-10 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-bold shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round">
-                                <path d="M18 6 6 18"/>
-                                <path d="m6 6 12 12"/>
-                            </svg>
-                            SKIP
-                        </button>
-                    </form>
-                    <form method="post" action="{{ url_for('decision') }}">
-                        <input type="hidden" name="action" value="yes">
-                        <button type="submit"
-                                class="btn-transition flex items-center gap-2 px-12 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round">
-                                <path d="M20 6 9 17l-5-5"/>
-                            </svg>
-                            SAVE & NEXT
-                        </button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="lg:col-span-4 space-y-6">
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Statistics</h3>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-2xl font-bold text-indigo-600">{{ term_photo_counter }}</p>
-                        <p class="text-xs text-gray-500">Term Downloads</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-2xl font-bold text-gray-800">{{ downloaded }}</p>
-                        <p class="text-xs text-gray-500">Total Session</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Switch API Source</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    {% for api_name, label in [('pexels', 'Pexels'), ('pixabay', 'Pixabay'), ('unsplash', 'Unsplash'),
-                    ('flickr', 'Flickr')] %}
-                    <form method="post" action="{{ url_for('api_decision') }}">
-                        <input type="hidden" name="action" value="use-{{ api_name }}-api">
-                        <button type="submit"
-                                class="w-full py-2 px-3 text-sm rounded-lg border {% if current_api == api_name %}bg-indigo-50 border-indigo-200 text-indigo-700 font-bold{% else %}bg-white border-gray-100 text-gray-600 hover:bg-gray-50{% endif %} btn-transition">
-                            {{ label }}
-                        </button>
-                    </form>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Term Navigation</h3>
-                <div class="flex gap-2">
-                    <form method="post" action="{{ url_for('term_decision') }}" class="flex-1">
-                        <input type="hidden" name="action" value="prev-term">
-                        <button type="submit"
-                                class="w-full py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 btn-transition">
-                            Previous Term
-                        </button>
-                    </form>
-                    <form method="post" action="{{ url_for('term_decision') }}" class="flex-1">
-                        <input type="hidden" name="action" value="next-term">
-                        <button type="submit"
-                                class="w-full py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 btn-transition">
-                            Next Term
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="bg-indigo-900 p-6 rounded-2xl shadow-lg">
-                <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-widest mb-4">Bulk Actions</h3>
-                <form method="post" action="{{ url_for('download_api_images') }}">
-                    <button type="submit"
-                            class="w-full py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition shadow-md flex items-center justify-center gap-2 text-sm lowercase">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" x2="12" y1="15" y2="3"/>
-                        </svg>
-                        Download {{ current_api }} images
-                    </button>
-                </form>
-            </div>
-
-        </div>
-    </div>
-    {% endif %}
 </main>
 
 </body>

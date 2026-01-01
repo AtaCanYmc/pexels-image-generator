@@ -1,4 +1,3 @@
-# python
 import os
 import webbrowser
 from threading import Timer
@@ -53,10 +52,11 @@ state = {
     "current_api": api_list[0]
 }
 
-HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
+REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 ERROR_PAGE_HTML = read_html_as_string("templates/error_page.html")
 SETTINGS_PAGE_HTML = read_html_as_string("templates/settings_page.html")
+HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
 
 pages = [
     {'name': 'home', 'route': '/'},
@@ -255,6 +255,14 @@ def decision_execution(action: str):
     return None
 
 
+@app.route('/')
+def home():
+    return render_template_string(HOME_PAGE_HTML,
+                                  project_name=project_name,
+                                  total_terms=len(search_terms),
+                                  downloaded=state["downloaded"])
+
+
 @app.route('/settings')
 def settings():
     env_list = get_env_file_as_kvp_list(".env")
@@ -266,13 +274,13 @@ def review():
     if not search_terms:
         return redirect(url_for("setup"))
     if state["term_idx"] >= len(search_terms):
-        return render_template_string(HOME_PAGE_HTML, finished=True, downloaded=state["downloaded"])
+        return render_template_string(REVIEW_PAGE_HTML, finished=True, downloaded=state["downloaded"])
     term, photo, url, cur_term_saved_img_count = current_photo_info()
     finished = False
     if term is None:
         finished = True
     return render_template_string(
-        HOME_PAGE_HTML,
+        REVIEW_PAGE_HTML,
         finished=finished,
         term=term,
         term_idx=state["term_idx"],
@@ -365,13 +373,14 @@ def internal_server_error(e):
     return (render_template_string(ERROR_PAGE_HTML,
                                    error_code="500",
                                    error_title="Internal Server Error",
-                                   error_message="An unexpected issue occurred on the server side. Please check your code."),
+                                   error_message="An unexpected issue occurred on the server side. " +
+                                                 "Please check your code."),
             500)
 
 
 def open_browser():
     url_host = app_host if app_host != '0.0.0.0' else 'localhost'
-    webbrowser.open_new(f"http://{url_host}:{app_port}/setup")
+    webbrowser.open_new(f"http://{url_host}:{app_port}/")
 
 
 if __name__ == "__main__":
