@@ -30,7 +30,6 @@ def get_remote_size(url: str) -> dict:
     except Exception:
         pass
 
-    # Fallback: stream ile indirirken byte say (belleğe almadan)
     size = 0
     with requests.get(url, stream=True, timeout=30) as r:
         r.raise_for_status()
@@ -95,9 +94,3 @@ def copy_file_contents(src_path: str, dest_path: str):
         content = src_file.read()
     with open(dest_path, 'w', encoding='utf-8') as dest_file:
         dest_file.write(content)
-
-
-def generate_env_if_not_exist(env_path: str):
-    example_env_path = env_path + '.example'
-    if not os.path.exists(env_path):
-        copy_file_contents(env_path, env_path)
