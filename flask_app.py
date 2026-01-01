@@ -4,8 +4,9 @@ import webbrowser
 from threading import Timer
 from typing import Any
 
-from flask import Flask, render_template_string, redirect, url_for, request, render_template
+from flask import Flask, render_template_string, redirect, url_for, request
 
+from utils.env_utils import get_env_file_as_kvp_list
 from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images, \
     download_flicker_images_from_json
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images, \
@@ -55,9 +56,11 @@ state = {
 HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 ERROR_PAGE_HTML = read_html_as_string("templates/error_page.html")
+SETTINGS_PAGE_HTML = read_html_as_string("templates/settings_page.html")
 
 pages = [
     {'name': 'home', 'route': '/'},
+    {'name': 'settings', 'route': '/settings'},
     {'name': 'setup', 'route': '/setup'},
     {'name': 'review', 'route': '/review'}
 ]
@@ -252,6 +255,12 @@ def decision_execution(action: str):
     return None
 
 
+@app.route('/settings')
+def settings():
+    env_list = get_env_file_as_kvp_list(".env")
+    return render_template_string(SETTINGS_PAGE_HTML, env_vars=env_list)
+
+
 @app.route("/review")
 def review():
     if not search_terms:
@@ -345,18 +354,18 @@ def inject_pages():
 @app.errorhandler(404)
 def page_not_found(e):
     return (render_template_string(ERROR_PAGE_HTML,
-                            error_code="404",
-                            error_title="Page Not Found",
-                            error_message="The page you are looking for may have been moved or deleted."),
+                                   error_code="404",
+                                   error_title="Page Not Found",
+                                   error_message="The page you are looking for may have been moved or deleted."),
             404)
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
     return (render_template_string(ERROR_PAGE_HTML,
-                            error_code="500",
-                            error_title="Internal Server Error",
-                            error_message="An unexpected issue occurred on the server side. Please check your code."),
+                                   error_code="500",
+                                   error_title="Internal Server Error",
+                                   error_message="An unexpected issue occurred on the server side. Please check your code."),
             500)
 
 
