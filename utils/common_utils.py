@@ -15,10 +15,6 @@ app_port = os.getenv('APP_PORT', '8080')
 app_host = os.getenv('APP_HOST', '0.0.0.0')
 
 
-def generate_random_uuid() -> str:
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
-
-
 def get_remote_size(url: str) -> dict:
     try:
         head = requests.head(url, timeout=10)
