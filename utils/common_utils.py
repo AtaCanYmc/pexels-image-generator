@@ -11,6 +11,8 @@ project_name = os.getenv('PROJECT_NAME', 'unknown')
 json_map_file_name = os.getenv('IMAGE_MAP_JSON_NAME', 'downloaded_images')
 min_image_for_term = int(os.getenv('MIN_IMAGES_PER_TERM', '1'))
 is_download = os.getenv('DOWNLOAD_IMAGES', 'false').lower() == 'true'
+app_port = os.getenv('APP_PORT', '8080')
+app_host = os.getenv('APP_HOST', '0.0.0.0')
 
 
 def generate_random_uuid() -> str:
