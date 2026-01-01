@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  media-reviewer:
+    build: .
+    container_name: media_reviewer_app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./assets:/app/assets
+    restart: always
