@@ -2,10 +2,11 @@ import os
 import requests
 from dotenv import load_dotenv
 import json
+import uuid
 
 load_dotenv()
 
-project_name = os.getenv('PROJECT_NAME', 'unknown')
+project_name = os.getenv('PROJECT_NAME', f'project_{str(uuid.uuid4())[:8]}')
 json_map_file_name = os.getenv('IMAGE_MAP_JSON_NAME', 'downloaded_images')
 min_image_for_term = int(os.getenv('MIN_IMAGES_PER_TERM', '1'))
 is_download = os.getenv('DOWNLOAD_IMAGES', 'false').lower() == 'true'
