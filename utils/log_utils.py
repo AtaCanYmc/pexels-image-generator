@@ -1,11 +1,14 @@
 import logging
 import os
+import uuid
 from datetime import datetime
 
-from utils.common_utils import project_name, create_folders_if_not_exist
+from dotenv import load_dotenv
 
+load_dotenv()
+
+project_name = os.getenv('PROJECT_NAME', f'project_{str(uuid.uuid4())[:8]}')
 LOG_DIR = f"assets/{project_name}/log_files"
-create_folders_if_not_exist([LOG_DIR])
 
 formatter = logging.Formatter(
     '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
