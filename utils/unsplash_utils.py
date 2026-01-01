@@ -1,10 +1,12 @@
 import os
+import time
 from dataclasses import dataclass, field
 from typing import Optional, List
 import requests
 from dotenv import load_dotenv
 
 from utils.common_utils import get_remote_size, read_json_file
+from utils.log_utils import logger
 
 load_dotenv()
 
@@ -91,6 +93,42 @@ def get_extension_from_url(url: str) -> str:
     return 'jpg'
 
 
+def get_unsplash_image_from_api_result(item: dict) -> UnsplashImage:
+    return UnsplashImage(
+        id=item['id'],
+        created_at=item.get('created_at'),
+        width=item.get('width'),
+        height=item.get('height'),
+        color=item.get('color'),
+        blur_hash=item.get('blur_hash'),
+        description=item.get('description'),
+        alt_description=item.get('alt_description'),
+        urls=Urls(**item['urls']),
+        links=Links(
+            self_=item['links'].get('self'),
+            html=item['links'].get('html'),
+            download=item['links'].get('download')
+        ),
+        user=User(
+            id=item['user']['id'],
+            username=item['user']['username'],
+            name=item['user'].get('name'),
+            first_name=item['user'].get('first_name'),
+            last_name=item['user'].get('last_name'),
+            instagram_username=item['user'].get('instagram_username'),
+            twitter_username=item['user'].get('twitter_username'),
+            portfolio_url=item['user'].get('portfolio_url'),
+            profile_image=ProfileImage(**item['user']['profile_image']),
+            links=UserLinks(
+                self_=item['user']['links'].get('self'),
+                html=item['user']['links'].get('html'),
+                photos=item['user']['links'].get('photos')
+            )
+        ),
+        current_user_collections=item.get('current_user_collections', [])
+    )
+
+
 def get_image_from_unsplash(query, limit=15) -> list[UnsplashImage]:
     url = f"{unsplash_api_url}/search/photos"
     params = {
@@ -103,50 +141,18 @@ def get_image_from_unsplash(query, limit=15) -> list[UnsplashImage]:
     try:
         response = requests.get(url, params=params)
     except requests.RequestException as e:
-        print(f"Error fetching images from Unsplash for query '{query}': {e}")
+        logger.error(f"Error fetching images from Unsplash for query '{query}': {e}")
         return []
 
     if response.status_code != 200:
-        print(f"Hata oluştu: {response.status_code} - {response.text}")
+        logger.error(f"Error occurred: {response.status_code} - {response.text}")
         return []
 
     data = response.json()
     images = []
 
     for item in data['results']:
-        img = UnsplashImage(
-            id=item['id'],
-            created_at=item.get('created_at'),
-            width=item.get('width'),
-            height=item.get('height'),
-            color=item.get('color'),
-            blur_hash=item.get('blur_hash'),
-            description=item.get('description'),
-            alt_description=item.get('alt_description'),
-            urls=Urls(**item['urls']),
-            links=Links(
-                self_=item['links'].get('self'),
-                html=item['links'].get('html'),
-                download=item['links'].get('download')
-            ),
-            user=User(
-                id=item['user']['id'],
-                username=item['user']['username'],
-                name=item['user'].get('name'),
-                first_name=item['user'].get('first_name'),
-                last_name=item['user'].get('last_name'),
-                instagram_username=item['user'].get('instagram_username'),
-                twitter_username=item['user'].get('twitter_username'),
-                portfolio_url=item['user'].get('portfolio_url'),
-                profile_image=ProfileImage(**item['user']['profile_image']),
-                links=UserLinks(
-                    self_=item['user']['links'].get('self'),
-                    html=item['user']['links'].get('html'),
-                    photos=item['user']['links'].get('photos')
-                )
-            ),
-            current_user_collections=item.get('current_user_collections', [])
-        )
+        img = get_unsplash_image_from_api_result(item)
         images.append(img)
 
     return images
@@ -274,3 +280,24 @@ def download_unsplash_images_from_json(json_file: str, folder_name: str):
         image_list = [convert_json_to_unsplash_image(img_data) for img_data in images if
                       img_data.get('apiType') == 'unsplash']
         download_unsplash_images(image_list, folder_name)
+        time.sleep(10)
+
+
+def renew_unsplash_image(img: UnsplashImage) -> UnsplashImage:
+    url = f"{unsplash_api_url}/search/photos/{img.id}"
+    params = {
+        "client_id": unsplash_api_key
+    }
+
+    try:
+        response = requests.get(url, params=params)
+    except requests.RequestException as e:
+        logger.error(f"Error fetching image from Unsplash for id '{img.id}': {e}")
+        return img
+
+    if response.status_code != 200:
+        logger.error(f"Error occurred: {response.status_code} - {response.text}")
+        return img
+
+    data = response.json()
+    return get_unsplash_image_from_api_result(data)
