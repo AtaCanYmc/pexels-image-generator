@@ -4,6 +4,7 @@ import os
 import requests
 from pexels_api.tools import Photo
 from utils.common_utils import get_remote_size, read_json_file, create_folders_if_not_exist
+from utils.log_utils import logger
 
 load_dotenv()
 
@@ -20,9 +21,9 @@ def get_image_from_pexels(term, page_idx=1, results_per_page=15) -> list[Photo]:
         pexels_api.search(term, page=page_idx, results_per_page=results_per_page)
         photo_list = pexels_api.get_entries()
     except Exception as e:
-        print(f"Error fetching images from Pexels for term '{term}': {e}")
+        logger.error(f"Error fetching images from Pexels for term '{term}': {e}")
         return []
-    
+
     return photo_list
 
 
@@ -37,15 +38,18 @@ def download_pexels_images(photo_list: list[Photo], folder_name: str):
             if content_kb <= max_image_kb:
                 break
             url_indx += 1
+
         try:
             image_data = requests.get(url_list[url_indx], timeout=30)
         except requests.RequestException as e:
-            print(f"Error downloading image {photo.id} from Pexels: {e}")
+            logger.error(f"Error downloading image {photo.id} from Pexels: {e}")
             return
+
         image_path = os.path.join(folder_name, f"{photo.id}.{photo.extension}")
         with open(image_path, 'wb') as file:
             file.write(image_data.content)
-        print(f"Downloaded image {photo.id} to {image_path} ({content_kb:.2f} KB)")
+
+        logger.info(f"Downloaded image {photo.id} to {image_path} ({content_kb:.2f} KB)")
 
 
 def convert_pexels_photo_to_json(img: Photo) -> dict:
@@ -99,6 +103,6 @@ def download_pexels_images_from_json(json_file: str, folder_name: str):
                 create_folders_if_not_exist([folder_path])
                 with open(image_path, 'wb') as file:
                     file.write(image_data.content)
-                print(f"Downloaded image {img_data['id']} to {image_path} ({content_kb:.2f} KB)")
+                logger.info(f"Downloaded image {img_data['id']} to {image_path} ({content_kb:.2f} KB)")
             else:
-                print(f"Skipped image {img_data['id']} ({content_kb:.2f} KB exceeds limit)")
+                logger.info(f"Skipped image {img_data['id']} ({content_kb:.2f} KB exceeds limit)")

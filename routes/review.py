@@ -7,6 +7,7 @@ from utils.common_utils import project_name, read_html_as_string, \
     term_to_folder_name, is_download, create_folders_if_not_exist
 from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images, \
     download_flicker_images_from_json
+from utils.log_utils import logger
 from utils.pexel_utils import get_image_from_pexels, convert_pexels_photo_to_json, download_pexels_images, \
     download_pexels_images_from_json
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \
@@ -129,6 +130,7 @@ def download_image(photo: Any, term: str, force_download=False):
 
 
 def term_decision_execution(action: str):
+    logger.debug(f"Term Decision Execution - Action: {action}")
     if action == "next-term":
         state["term_idx"] += 1
         state["photo_idx"] = 0
@@ -143,7 +145,8 @@ def term_decision_execution(action: str):
 
 def decision_execution(action: str):
     term, photo, url, cur_term_saved_img_count = current_photo_info()
-    print(f"-> action: {action} for term: {term}, photo idx: {photo}")
+    logger.debug(f"Decision Execution - Action: {action}, Term: {term}, Photo ID: {getattr(photo, 'id', None)}")
+
     if not term:
         return redirect(url_for("review.index"))
 
@@ -171,6 +174,8 @@ def decision_execution(action: str):
 
 
 def api_decision_execution(action: str):
+    logger.debug(f"API Decision Execution - Action: {action}")
+
     if action == "use-pexels-api":
         state["photos_cache"] = {}
         state["current_api"] = 'pexels'

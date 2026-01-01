@@ -1,8 +1,14 @@
 import os
+import shutil
+from threading import Timer
 import requests
 from dotenv import load_dotenv
 import json
 import uuid
+
+from flask import send_file, Response
+
+from utils.log_utils import logger
 
 load_dotenv()
 
@@ -92,6 +98,31 @@ def save_json_file(file_path: str, data: dict):
 def save_text_file(file_path: str, data: str):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(data)
+
+
+def delete_file_if_exists(file_path: str):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        logger.info(f"Deleted file {file_path}")
+
+
+def delete_files_if_exist(folder_path: str):
+    if os.path.exists(folder_path):
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
+
+def get_project_folder_as_zip() -> tuple[Response, int]:
+    source_dir = f"assets/{project_name}"
+    zip_filename = f"{project_name}_assets"
+    zip_path = f"assets/zip_files/{zip_filename}"
+
+    shutil.make_archive(zip_path, 'zip', source_dir)
+    # delete the zip file after 120 seconds
+    Timer(120, delete_file_if_exists, args=[f"{zip_path}.zip"]).start()
+    return send_file(f"{zip_path}.zip", as_attachment=True), 200
 
 
 def get_image_url(img: dict) -> str:

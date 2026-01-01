@@ -3,7 +3,6 @@ from threading import Timer
 
 from flask import Flask, render_template_string
 
-from core import state
 from core.state import search_terms, get_state_value
 from routes.gallery import gallery_bp
 from routes.review import review_bp
@@ -13,20 +12,25 @@ from utils.common_utils import (create_folders_if_not_exist,
                                 project_name, read_html_as_string,
                                 json_map_file_name, create_files_if_not_exist,
                                 app_port, app_host, use_debug_mode,
-                                use_reloader)
+                                use_reloader, delete_files_if_exist)
 
 create_folders_if_not_exist([
+    "assets",
+    "assets/zip_files",
     f"assets/{project_name}",
     f"assets/{project_name}/image_files",
     f"assets/{project_name}/json_files",
     f"assets/{project_name}/video_files",
-    f"assets/{project_name}/zip_files"
+    f"assets/{project_name}/log_files"
 ])
 
 create_files_if_not_exist([
     f"assets/{project_name}/search.txt",
     f"assets/{project_name}/json_files/{json_map_file_name}.json"
 ])
+
+delete_files_if_exist("assets/zip_files")
+delete_files_if_exist(f"assets/{project_name}/log_files")
 
 api_list = ['pexels', 'pixabay', 'unsplash', 'flickr']
 

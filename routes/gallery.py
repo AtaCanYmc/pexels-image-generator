@@ -1,10 +1,10 @@
 import json
 import os
-import shutil
-from flask import Blueprint, render_template, request, redirect, url_for, send_file, render_template_string
-from core.state import state, json_file_path
+from flask import Blueprint, request, redirect, url_for, render_template_string
+from core.state import json_file_path
 from utils.common_utils import project_name, read_json_file, save_json_file, get_image_url, get_thumbnail, \
-    read_html_as_string
+    read_html_as_string, get_project_folder_as_zip
+from utils.log_utils import logger
 
 gallery_bp = Blueprint('gallery', __name__)
 GALLERY_PAGE_HTML = read_html_as_string("templates/gallery_page.html")
@@ -21,7 +21,7 @@ def index():
                                   gallery_data=gallery_data,
                                   project_name=project_name,
                                   get_url_func=get_image_url,
-                                  get_thumb_func=get_thumbnail)
+                                  get_thumb_func=get_thumbnail), 200
 
 
 @gallery_bp.route('/delete-image', methods=['POST'])
@@ -47,20 +47,15 @@ def delete_image():
             save_json_file(json_file_path, image_list)
 
     except Exception as e:
-        print(f"Delete Error: {e}")
+        logger.error(f"Error deleting image from JSON: {e}")
 
     return redirect(url_for('gallery.index'))
 
 
 @gallery_bp.route('/download-zip')
 def download_zip():
-    source_dir = f"assets/{project_name}"
-    zip_filename = f"{project_name}_assets"
-    zip_path = f"assets/{zip_filename}"
-
-    if os.path.exists(source_dir):
-        shutil.make_archive(zip_path, 'zip', source_dir)
-        return send_file(f"{zip_path}.zip", as_attachment=True)
-    else:
+    try:
+        return get_project_folder_as_zip()
+    except Exception as e:
+        logger.error(f"Error creating zip file: {e}")
         return redirect(url_for("gallery.index"))
-
