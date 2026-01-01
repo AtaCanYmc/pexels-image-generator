@@ -2,7 +2,6 @@ import os
 import requests
 from dotenv import load_dotenv
 from dataclasses import dataclass
-import json
 
 from utils.common_utils import get_remote_size, read_json_file
 
@@ -10,6 +9,10 @@ load_dotenv()
 
 pixabay_api_key = os.getenv('PIXABAY_API_KEY')
 pixabay_api_url = os.getenv('PIXABAY_API_URL')
+if not pixabay_api_key or not pixabay_api_url:
+    raise EnvironmentError(
+        "Environment variables `PIXABAY_API_KEY` "
+        "or `PIXABAY_API_URL` are not set. Set them in the environment or in a `.env` file.")
 
 
 @dataclass
@@ -45,7 +48,14 @@ def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[Pixaba
         'per_page': results_per_page,
         'image_type': 'photo',
     }
-    response = requests.get(pixabay_api_url, params=params, timeout=30)
+
+    try:
+        response = requests.get(pixabay_api_url, params=params, timeout=30)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Error fetching images from Pixabay for term '{term}': {e}")
+        return []
+
     data = response.json()
     if 'error' in data:
         raise Exception(f"Pixabay API error: {data['error']}")
@@ -84,7 +94,12 @@ def download_pixabay_images(image_list: list[PixabayImage], folder_name: str):
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
         if content_kb <= int(os.getenv('MAX_KB_IMAGE_SIZE', '512')):
-            image_data = requests.get(url, timeout=30)
+            try:
+                image_data = requests.get(url, timeout=30)
+            except requests.RequestException as e:
+                print(f"Error downloading image {img.id} from Pixabay: {e}")
+                return
+
             extension = url.split('.')[-1]
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:

@@ -16,8 +16,13 @@ max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 
 
 def get_image_from_pexels(term, page_idx=1, results_per_page=15) -> list[Photo]:
-    pexels_api.search(term, page=page_idx, results_per_page=results_per_page)
-    photo_list = pexels_api.get_entries()
+    try:
+        pexels_api.search(term, page=page_idx, results_per_page=results_per_page)
+        photo_list = pexels_api.get_entries()
+    except Exception as e:
+        print(f"Error fetching images from Pexels for term '{term}': {e}")
+        return []
+    
     return photo_list
 
 
@@ -32,22 +37,15 @@ def download_pexels_images(photo_list: list[Photo], folder_name: str):
             if content_kb <= max_image_kb:
                 break
             url_indx += 1
-        image_data = requests.get(url_list[url_indx], timeout=30)
+        try:
+            image_data = requests.get(url_list[url_indx], timeout=30)
+        except requests.RequestException as e:
+            print(f"Error downloading image {photo.id} from Pexels: {e}")
+            return
         image_path = os.path.join(folder_name, f"{photo.id}.{photo.extension}")
         with open(image_path, 'wb') as file:
             file.write(image_data.content)
         print(f"Downloaded image {photo.id} to {image_path} ({content_kb:.2f} KB)")
-
-
-def ask_for_pexels_download(term: str, img: Photo) -> bool:
-    while True:
-        user_input = input(f"Download image {img.original} for term '{term}'? (y/n): ").strip().lower()
-        if user_input in ['y', 'yes', '', ' '] or not user_input:
-            return True
-        elif user_input in ['n', 'no']:
-            return False
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
 
 
 def convert_pexels_photo_to_json(img: Photo) -> dict:

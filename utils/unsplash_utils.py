@@ -1,7 +1,6 @@
 import os
 from dataclasses import dataclass, field
 from typing import Optional, List
-import json
 import requests
 from dotenv import load_dotenv
 
@@ -94,7 +93,12 @@ def get_image_from_unsplash(query, limit=15) -> list[UnsplashImage]:
         "order_by": "relevant"
     }
 
-    response = requests.get(url, params=params)
+    try:
+        response = requests.get(url, params=params)
+    except requests.RequestException as e:
+        print(f"Error fetching images from Unsplash for query '{query}': {e}")
+        return []
+
     if response.status_code != 200:
         print(f"Hata oluştu: {response.status_code} - {response.text}")
         return []
@@ -194,7 +198,12 @@ def download_unsplash_images(image_list: list[UnsplashImage], folder_name: str):
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
         if content_kb <= int(os.getenv('MAX_KB_IMAGE_SIZE', '512')):
-            image_data = requests.get(url, timeout=30)
+            try:
+                image_data = requests.get(url, timeout=30)
+            except requests.RequestException as e:
+                print(f"Error downloading image {img.id} from Unsplash: {e}")
+                return
+
             extension = url.find('fm=') != -1 and url.split('fm=')[1].split('&')[0] or 'jpg'
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:

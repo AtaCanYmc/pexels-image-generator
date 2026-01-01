@@ -4,7 +4,7 @@ import webbrowser
 from threading import Timer
 from typing import Any
 
-from flask import Flask, render_template_string, redirect, url_for, request
+from flask import Flask, render_template_string, redirect, url_for, request, render_template
 
 from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images, \
     download_flicker_images_from_json
@@ -40,17 +40,20 @@ json_map = read_json_file(json_file_path)
 removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) >= min_image_for_term] if json_map else []
 search_terms = read_search_terms(search_file_path, removed_keys)
 
+api_list = ['pexels', 'pixabay', 'unsplash', 'flickr']
+
 state = {
     "term_idx": 0,
     "photo_idx": 0,
     "photos_cache": {},  # term_idx -> list[Photo]
     "downloaded": 0,
     "downloaded_json": json_map,
-    "current_api": 'pexels'
+    "current_api": api_list[0]
 }
 
 HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
+ERROR_PAGE_HTML = read_html_as_string("templates/error_page.html")
 
 
 def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
@@ -174,49 +177,51 @@ def download_image(photo: Any, term: str, force_download=False):
     state["downloaded"] += 1
 
 
-def decision_execution(action: str):
-    term, photo, url, cur_term_saved_img_count = current_photo_info()
-    print(f"-> action: {action}")
-    if not term:
-        return redirect(url_for("review"))
-
+def api_decision_execution(action: str):
     if action == "use-pexels-api":
         state["photos_cache"] = {}
         state["current_api"] = 'pexels'
         state["photo_idx"] = 0
         get_photos_for_term_idx(state["term_idx"], use_cache=False)
-        return redirect(url_for("review"))
 
     if action == "use-pixabay-api":
         state["photos_cache"] = {}
         state["current_api"] = 'pixabay'
         state["photo_idx"] = 0
         get_photos_for_term_idx(state["term_idx"], use_cache=False)
-        return redirect(url_for("review"))
 
     if action == "use-unsplash-api":
         state["photos_cache"] = {}
         state["current_api"] = 'unsplash'
         state["photo_idx"] = 0
         get_photos_for_term_idx(state["term_idx"], use_cache=False)
-        return redirect(url_for("review"))
 
     if action == "use-flickr-api":
         state["photos_cache"] = {}
         state["current_api"] = 'flickr'
         state["photo_idx"] = 0
         get_photos_for_term_idx(state["term_idx"], use_cache=False)
-        return redirect(url_for("review"))
 
+    return redirect(url_for("review"))
+
+
+def term_decision_execution(action: str):
     if action == "next-term":
         state["term_idx"] += 1
         state["photo_idx"] = 0
-        return redirect(url_for("review"))
 
     if action == "prev-term":
         if state["term_idx"] > 0:
             state["term_idx"] -= 1
             state["photo_idx"] = 0
+
+    return redirect(url_for("review"))
+
+
+def decision_execution(action: str):
+    term, photo, url, cur_term_saved_img_count = current_photo_info()
+    print(f"-> action: {action}")
+    if not term:
         return redirect(url_for("review"))
 
     if action == "previous":
@@ -261,6 +266,18 @@ def review():
         current_api=state["current_api"],
         term_photo_counter=cur_term_saved_img_count
     )
+
+
+@app.route("/api-decision", methods=["POST"])
+def api_decision():
+    action = request.form.get("action")
+    return api_decision_execution(action)
+
+
+@app.route("/term-decision", methods=["POST"])
+def term_decision():
+    action = request.form.get("action")
+    return term_decision_execution(action)
 
 
 @app.route("/setup", methods=['GET', 'POST'])
@@ -311,6 +328,22 @@ def download_api_images():
         download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files/flickr")
 
     return redirect(url_for("review"))
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template(ERROR_PAGE_HTML,
+                           error_code="404",
+                           error_title="Page Not Found",
+                           error_message="The page you are looking for may have been moved or deleted."), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template(ERROR_PAGE_HTML,
+                           error_code="500",
+                           error_title="Internal Server Error",
+                           error_message="An unexpected issue occurred on the server side. Please check your code."), 500
 
 
 def open_browser():

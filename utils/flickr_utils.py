@@ -35,8 +35,12 @@ def get_image_from_flickr(query, limit=15) -> list[FlickerImage]:
         "license": "4,5,6,9,10"
     }
 
-    r = requests.get(scrapper_url, params=params, headers=HEADERS, timeout=15)
-    r.raise_for_status()
+    try:
+        r = requests.get(scrapper_url, params=params, headers=HEADERS, timeout=30)
+        r.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Error fetching images from Flickr for query '{query}': {e}")
+        return []
 
     soup = BeautifulSoup(r.text, "html.parser")
 
@@ -80,7 +84,11 @@ def download_flickr_images(image_list: list[FlickerImage], folder_name: str):
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
         if content_kb <= int(os.getenv('MAX_KB_IMAGE_SIZE', '512')):
-            image_data = requests.get(url, timeout=30)
+            try:
+                image_data = requests.get(url, timeout=30)
+            except requests.RequestException as e:
+                print(f"Error downloading image {img.id} from Flickr: {e}")
+                return
             extension = url.split('.')[-1]
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:

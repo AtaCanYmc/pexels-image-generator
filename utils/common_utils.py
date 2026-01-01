@@ -92,3 +92,16 @@ def save_json_file(file_path: str, data: dict):
 def save_text_file(file_path: str, data: str):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(data)
+
+
+def copy_file_contents(src_path: str, dest_path: str):
+    with open(src_path, 'r', encoding='utf-8') as src_file:
+        content = src_file.read()
+    with open(dest_path, 'w', encoding='utf-8') as dest_file:
+        dest_file.write(content)
+
+
+def generate_env_if_not_exist(env_path: str):
+    example_env_path = env_path + '.example'
+    if not os.path.exists(env_path):
+        copy_file_contents(env_path, env_path)
