@@ -134,7 +134,7 @@
 
                 {% if photo_url %}
                 <div class="p-6 bg-white flex justify-center gap-4 border-t border-gray-100">
-                    <form method="post" action="{{ url_for('decision') }}">
+                    <form method="post" action="{{ url_for('review.decision') }}">
                         <input type="hidden" name="action" value="previous">
                         <button type="submit"
                                 class="btn-transition flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium shadow-sm">
@@ -147,7 +147,7 @@
                             Back
                         </button>
                     </form>
-                    <form method="post" action="{{ url_for('decision') }}">
+                    <form method="post" action="{{ url_for('review.decision') }}">
                         <input type="hidden" name="action" value="no">
                         <button type="submit"
                                 class="btn-transition flex items-center gap-2 px-10 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-bold shadow-sm">
@@ -160,7 +160,7 @@
                             SKIP
                         </button>
                     </form>
-                    <form method="post" action="{{ url_for('decision') }}">
+                    <form method="post" action="{{ url_for('review.decision') }}">
                         <input type="hidden" name="action" value="yes">
                         <button type="submit"
                                 class="btn-transition flex items-center gap-2 px-12 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-100">
@@ -198,7 +198,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     {% for api_name, label in [('pexels', 'Pexels'), ('pixabay', 'Pixabay'), ('unsplash', 'Unsplash'),
                     ('flickr', 'Flickr')] %}
-                    <form method="post" action="{{ url_for('api_decision') }}">
+                    <form method="post" action="{{ url_for('review.api_decision') }}">
                         <input type="hidden" name="action" value="use-{{ api_name }}-api">
                         <button type="submit"
                                 class="w-full py-2 px-3 text-sm rounded-lg border {% if current_api == api_name %}bg-indigo-50 border-indigo-200 text-indigo-700 font-bold{% else %}bg-white border-gray-100 text-gray-600 hover:bg-gray-50{% endif %} btn-transition">
@@ -212,14 +212,14 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Term Navigation</h3>
                 <div class="flex gap-2">
-                    <form method="post" action="{{ url_for('term_decision') }}" class="flex-1">
+                    <form method="post" action="{{ url_for('review.term_decision') }}" class="flex-1">
                         <input type="hidden" name="action" value="prev-term">
                         <button type="submit"
                                 class="w-full py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 btn-transition">
                             Previous Term
                         </button>
                     </form>
-                    <form method="post" action="{{ url_for('term_decision') }}" class="flex-1">
+                    <form method="post" action="{{ url_for('review.term_decision') }}" class="flex-1">
                         <input type="hidden" name="action" value="next-term">
                         <button type="submit"
                                 class="w-full py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 btn-transition">
@@ -231,7 +231,7 @@
 
             <div class="bg-indigo-900 p-6 rounded-2xl shadow-lg">
                 <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-widest mb-4">Bulk Actions</h3>
-                <form method="post" action="{{ url_for('download_api_images') }}">
+                <form method="post" action="{{ url_for('review.download_api_images') }}">
                     <button type="submit"
                             class="w-full py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition shadow-md flex items-center justify-center gap-2 text-sm lowercase">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"

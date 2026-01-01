@@ -46,7 +46,7 @@
         </div>
 
         {% if gallery_data %}
-        <a href="{{ url_for('download_zip') }}"
+        <a href="{{ url_for('gallery.download_zip') }}"
            class="flex items-center gap-3 px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 transition-all hover:-translate-y-1 active:scale-95">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -120,7 +120,7 @@
                             </span>
                         </div>
 
-                        <form action="{{ url_for('delete_image') }}" method="POST"
+                        <form action="{{ url_for('gallery.delete_image') }}" method="POST"
                               onsubmit="return confirm('Bu görseli silmek istediğinize emin misiniz?');"
                               class="absolute top-2 right-2 opacity-0 group-hover/imgbox:opacity-100 transition-opacity">
                             <input type="hidden" name="term" value="{{ term }}">
