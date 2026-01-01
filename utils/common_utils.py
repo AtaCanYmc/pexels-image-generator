@@ -1,6 +1,4 @@
 import os
-import random
-import string
 import requests
 from dotenv import load_dotenv
 import json
