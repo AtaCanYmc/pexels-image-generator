@@ -9,12 +9,6 @@ load_dotenv()
 wger_api_url = os.getenv("WGER_API_URL", "https://wger.de/api/v2")
 wger_base_url = os.getenv('WGER_BASE_URL', "https://wger.de")
 
-SEARCH_TERMS = [
-    'push', 'pull', 'squat', 'lunge', 'plank', 'crunch', 'deadlift', 'row', 'press', 'curl',
-    'extension', 'fly', 'raise', 'dip', 'jump', 'twist', 'hold', 'bridge', 'kick', 'roll',
-    'barbell', 'dumbbell', 'kettlebell', 'cable', 'machine', 'bodyweight', 'band', 'medball'
-]
-
 
 @dataclass
 class WgerImage:
